@@ -1,17 +1,8 @@
 Make sure Kodi has web control enabled
 
-Create a folder kodi-nowplaying and put the doccker-compose.yml file and .env file (see below) in it.
+Unzip script.kodi-nowplaying.zip 
 
-Inside kodi-nowplaying, create another folder called nowplaying and place the rest of the files inside it, i.e. Dockerfile, favicon.ico, kodi-nowplaying.py, parser.py, episode_nowplaying.py, movie_nowplaying.py, music_nowplaying.py
-
-Create an .env file and add your Kodi Nowplaying Credentials to it - replace with your credentials and Kodi IP and port no
-```
-KODI_HOST=http://KodiDeviceIP:port
-
-KODI_USERNAME=YourUsername
-
-KODI_PASSWORD=YourPassword
-```
+Edit the .env file and input the ip to your Kodi device, HTTP port and user/pass.
 
 _________________________
 OPTIONAL: Create fallback and edit the kodi-nowplaying.py file and enter Kodi IP and user/pass there:
@@ -33,6 +24,7 @@ Start playing media on your Kodi device
 Test locally by visiting http://localhost:5001/nowplaying <- or replace localhost with the IP of the container host
 
 Mount it as a custom Homarr iframe tile pointing to http://localhost:5001/nowplaying 
+
 
 
 
