@@ -1,7 +1,18 @@
 Make sure Kodi has web control enabled
 
-Edit the docker compose with your Kodi device's IP and HTTP port
-Edit Kodi HTTP access username and password
+Create an .env file and add this to it:
+# ─── Kodi Nowplaying Credentials - replace with your credentials and Kodi IP and port no
+KODI_HOST=http://KodiDeviceIP:port
+KODI_USERNAME=YoutUsername
+KODI_PASSWORD=YourPassword
+
+_________________________
+OPTIONAL: Create fallback and edit the kodi-nowplaying.py file and enter Kodi IP and user/pass there:
+# Kodi connection details
+KODI_HOST = os.getenv("KODI_HOST", "http://insert_ip:insert_port")
+KODI_USER = os.getenv("KODI_USER", "insert_user")
+KODI_PASS = os.getenv("KODI_PASS", "insert_pass")
+_________________________
 
 Build and start container:
 docker compose up -d
@@ -11,5 +22,3 @@ Start playing media on your Kodi device
 Test locally by visiting http://localhost:5001/nowplaying <- or replace localhost with the IP of the container host
 
 Mount it as a custom Homarr iframe tile pointing to http://localhost:5001/nowplaying 
-
-
