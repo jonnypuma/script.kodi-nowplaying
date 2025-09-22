@@ -1,2 +1,13 @@
-# script.kodi-nowplaying
-A script running in a Docker Container which produces a very sleek now playing html based on Kodi playback
+Make sure Kodi has web control enabled
+
+Edit the docker compose with your Kodi device's IP and HTTP port
+Edit Kodi HTTP access username and password
+
+Build and start container:
+docker compose up -d
+
+Start playing media on your Kodi device
+Test locally by visiting http://localhost:5000/nowplaying <- or replace localhost with the IP of the container host
+
+Mount it as a custom Homarr iframe tile pointing to http://localhost:5000/nowplaying 
+
