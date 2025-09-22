@@ -1,7 +1,7 @@
 Make sure Kodi has web control enabled
 
 Create an .env file and add this to it:
-# ─── Kodi Nowplaying Credentials - replace with your credentials and Kodi IP and port no
+Kodi Nowplaying Credentials - replace with your credentials and Kodi IP and port no
 KODI_HOST=http://KodiDeviceIP:port
 KODI_USERNAME=YoutUsername
 KODI_PASSWORD=YourPassword
@@ -22,3 +22,4 @@ Start playing media on your Kodi device
 Test locally by visiting http://localhost:5001/nowplaying <- or replace localhost with the IP of the container host
 
 Mount it as a custom Homarr iframe tile pointing to http://localhost:5001/nowplaying 
+
