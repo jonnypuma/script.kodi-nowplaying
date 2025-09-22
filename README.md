@@ -8,7 +8,7 @@ Create an .env file and add your Kodi Nowplaying Credentials to it - replace wit
 ```
 KODI_HOST=http://KodiDeviceIP:port
 
-KODI_USERNAME=YoutUsername
+KODI_USERNAME=YourUsername
 
 KODI_PASSWORD=YourPassword
 ```
@@ -33,6 +33,7 @@ Start playing media on your Kodi device
 Test locally by visiting http://localhost:5001/nowplaying <- or replace localhost with the IP of the container host
 
 Mount it as a custom Homarr iframe tile pointing to http://localhost:5001/nowplaying 
+
 
 
 
