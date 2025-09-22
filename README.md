@@ -7,7 +7,9 @@ Build and start container:
 docker compose up -d
 
 Start playing media on your Kodi device
-Test locally by visiting http://localhost:5000/nowplaying <- or replace localhost with the IP of the container host
 
-Mount it as a custom Homarr iframe tile pointing to http://localhost:5000/nowplaying 
+Test locally by visiting http://localhost:5001/nowplaying <- or replace localhost with the IP of the container host
+
+Mount it as a custom Homarr iframe tile pointing to http://localhost:5001/nowplaying 
+
 
