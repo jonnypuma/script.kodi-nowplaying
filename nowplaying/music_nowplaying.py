@@ -99,6 +99,7 @@ def generate_html(item, session_id, downloaded_art, progress_data, details):
     song_samplerate = details.get("samplerate", 0)
     song_bitrate = details.get("bitrate", 0)
     song_channels = details.get("channels", 0)
+    song_track = details.get("track", 0)
     song_release_date = details.get("releasedate", "")
     song_original_date = details.get("originaldate", "")
     
@@ -210,15 +211,59 @@ def generate_html(item, session_id, downloaded_art, progress_data, details):
           padding: 80px 40px 40px 40px;
           backdrop-filter: blur(5px);
           box-shadow: 0 8px 32px rgba(0,0,0,0.8);
+          color: white;
+        }}
+        .three-column-layout {{
           display: flex;
           gap: 40px;
-          color: white;
+          align-items: flex-start;
+        }}
+        .column-left {{
+          flex: 0 0 auto;
+        }}
+        .column-middle {{
+          flex: 0 0 600px;
+          display: flex;
+          flex-direction: column;
+          gap: 15px;
+        }}
+        .column-right {{
+          flex: 1;
+          display: flex;
+          flex-direction: column;
+          gap: 20px;
+        }}
+        .album-description {{
+          background: rgba(0,0,0,0.3);
+          padding: 15px;
+          border-radius: 8px;
+          border-left: 4px solid #4caf50;
+          font-size: 1.0em;
+          line-height: 1.5;
+          max-height: 200px;
+          overflow-y: auto;
+        }}
+        .album-description::-webkit-scrollbar {{
+          width: 8px;
+        }}
+        .album-description::-webkit-scrollbar-track {{
+          background: rgba(255, 255, 255, 0.1);
+          border-radius: 4px;
+        }}
+        .album-description::-webkit-scrollbar-thumb {{
+          background: linear-gradient(180deg, #4caf50 0%, #45a049 100%);
+          border-radius: 4px;
+          border: 1px solid rgba(255, 255, 255, 0.2);
+        }}
+        .album-description::-webkit-scrollbar-thumb:hover {{
+          background: linear-gradient(180deg, #5cbf60 0%, #4caf50 100%);
         }}
         .poster-container {{
           position: relative;
           overflow: visible;
           height: 240px;
           width: auto;
+          margin-top: 60px;
         }}
         .poster {{
           height: 240px;
@@ -226,18 +271,19 @@ def generate_html(item, session_id, downloaded_art, progress_data, details):
           box-shadow: 0 2px 8px rgba(0,0,0,0.6);
           position: relative;
           z-index: 2;
+          margin-top: 20px;
         }}
         .discart-wrapper {{
           position: absolute;
-          top: -60px;
+          top: -80px;
           left: 50%;
           transform: translateX(-50%);
           z-index: 1;
-          height: 120px;
-          width: 160px;
+          height: 140px;
+          width: 180px;
         }}
         .discart {{
-          width: 160px;
+          width: 180px;
           animation: spin 4s linear infinite;
           opacity: 1;
           filter: drop-shadow(0 0 4px rgba(0,0,0,0.6));
@@ -311,12 +357,17 @@ def generate_html(item, session_id, downloaded_art, progress_data, details):
           display: block;
           margin-bottom: 10px;
           max-width: 360px;
-          width: 100%;
+          width: auto;
+          height: auto;
+          object-fit: contain;
         }}
         .logo {{
           display: block;
           margin-bottom: 10px;
           max-height: 150px;
+          width: auto;
+          height: auto;
+          object-fit: contain;
         }}
         .clearart {{
           display: block;
@@ -327,10 +378,20 @@ def generate_html(item, session_id, downloaded_art, progress_data, details):
           margin-bottom: 20px;
         }}
         .track-title {{
-          font-size: 1.5em;
+          font-size: 1.8em;
           font-weight: bold;
           margin-bottom: 5px;
           color: #4caf50;
+          text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+          letter-spacing: 0.5px;
+          display: inline;
+        }}
+        .track-number {{
+          font-weight: bold;
+          color: #4caf50;
+          text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+          letter-spacing: 0.5px;
+          margin-right: 8px;
         }}
         .album-title {{
           font-size: 1.2em;
@@ -544,62 +605,51 @@ def generate_html(item, session_id, downloaded_art, progress_data, details):
         </div>
       </div>
       <div class="content">
-        <div class="poster-container">
-          {"<div class='discart-wrapper'><img class='discart' src='" + discart_display_url + "' /></div>" if discart_display_url else ""}
-          {f"<img class='poster' src='{album_poster_url}' />" if album_poster_url else ""}
-          {f"<img class='clearart' src='{clearart_url}' />" if clearart_url else ""}
-        </div>
-        <div>
-          {f"<img class='logo' src='{clearlogo_url}' />" if clearlogo_url else (f"<img class='banner' src='{banner_url}' />" if banner_url else f"<h2 style='margin-bottom: 4px;'>🎵 {title}</h2>")}
-          
-          <div class="music-info">
-            <div class="track-title">{title}</div>
-            <div class="album-title">by {artist_names}</div>
-            {f"<div class='album-title'>from {album}" + (f" ({album_year})" if album_year else "") + "</div>" if album else ""}
-            {f"<div class='album-title'>Album Rating: ⭐ {album_rating}</div>" if album_rating > 0 else ""}
+        <div class="three-column-layout">
+          <!-- Left Column: Album Cover and Discart -->
+          <div class="column-left">
+            <div class="poster-container">
+              {"<div class='discart-wrapper'><img class='discart' src='" + discart_display_url + "' /></div>" if discart_display_url else ""}
+              {f"<img class='poster' src='{album_poster_url}' />" if album_poster_url else ""}
+              {f"<img class='clearart' src='{clearart_url}' />" if clearart_url else ""}
+            </div>
           </div>
           
-          {f"<h3 style='margin-top:20px;'>👤 Artist Info</h3>" if artist_born or artist_formed or artist_years_active or artist_genre or artist_mood or artist_style or artist_gender or artist_instrument or artist_type else ""}
-          {f"<p><strong>Born:</strong> {artist_born}</p>" if artist_born else ""}
-          {f"<p><strong>Formed:</strong> {artist_formed}</p>" if artist_formed else ""}
-          {f"<p><strong>Years Active:</strong> {artist_years_active}</p>" if artist_years_active else ""}
-          {f"<p><strong>Gender:</strong> {artist_gender}</p>" if artist_gender else ""}
-          {f"<p><strong>Type:</strong> {artist_type}</p>" if artist_type else ""}
-          {f"<p><strong>Instruments:</strong> {', '.join(artist_instrument)}</p>" if artist_instrument else ""}
-          {f"<p><strong>Genre:</strong> {', '.join(artist_genre)}</p>" if artist_genre else ""}
-          {f"<p><strong>Mood:</strong> {', '.join(artist_mood)}</p>" if artist_mood else ""}
-          {f"<p><strong>Style:</strong> {', '.join(artist_style)}</p>" if artist_style else ""}
-          
-          {f"<h3 style='margin-top:20px;'>📖 Artist Biography</h3>" if artist_bio else ""}
-          {f"<p style='max-width:600px;'>{artist_bio}</p>" if artist_bio else ""}
-          
-          {f"<h3 style='margin-top:20px;'>📖 Track Description</h3>" if plot else ""}
-          {f"<p style='max-width:600px;'>{plot}</p>" if plot else ""}
-          
-          {f"<h3 style='margin-top:20px;'>🎵 Track Details</h3>" if song_comment or song_lyrics or song_disc or song_bpm or song_samplerate or song_bitrate or song_channels or song_release_date or song_original_date else ""}
-          {f"<p><strong>Comment:</strong> {song_comment}</p>" if song_comment else ""}
-          {f"<p><strong>Disc:</strong> {song_disc}</p>" if song_disc > 0 else ""}
-          {f"<p><strong>BPM:</strong> {song_bpm}</p>" if song_bpm > 0 else ""}
-          {f"<p><strong>Sample Rate:</strong> {song_samplerate} Hz</p>" if song_samplerate > 0 else ""}
-          {f"<p><strong>Bitrate:</strong> {song_bitrate} kbps</p>" if song_bitrate > 0 else ""}
-          {f"<p><strong>Channels:</strong> {song_channels}</p>" if song_channels > 0 else ""}
-          {f"<p><strong>Release Date:</strong> {song_release_date}</p>" if song_release_date else ""}
-          {f"<p><strong>Original Date:</strong> {song_original_date}</p>" if song_original_date else ""}
-          {f"<p><strong>User Rating:</strong> ⭐ {song_user_rating}/10</p>" if song_user_rating > 0 else ""}
-          {f"<p><strong>Votes:</strong> {song_votes}</p>" if song_votes > 0 else ""}
-          <div class="badges">
-            {rating_html}
-            <span class="badge">{resolution}</span>
-            <span class="badge">{audio_codec} {channels}ch</span>
-            <span class="badge">Audio: {audio_languages}</span>
-            {"".join(f"<span class='badge'>{g}</span>" for g in genre_badges)}
+          <!-- Middle Column: Clearlogo, Song Info, Rating, Badges, Progress -->
+          <div class="column-middle">
+            {f"<img class='logo' src='{clearlogo_url}' />" if clearlogo_url else (f"<img class='banner' src='{banner_url}' />" if banner_url else f"<h2 style='margin-bottom: 4px;'>🎵 {artist_names}</h2>")}
+            
+            <div class="music-info">
+              <div class="track-title">
+                {f"<span class='track-number'>Track {song_track:02d}:</span>" if song_track > 0 else ""}{title}
+              </div>
+              <div class="album-title">by {artist_names}</div>
+              {f"<div class='album-title'>from {album}" + (f" ({album_year})" if album_year else "") + "</div>" if album else ""}
+              {f"<div class='album-title'>Album Rating: ⭐ {album_rating:.1f}</div>" if album_rating > 0 else ""}
+            </div>
+            
+            <div class="badges">
+              {rating_html}
+              <span class="badge">Audio</span>
+              {f"<span class='badge'>Disc: {song_disc}</span>" if song_disc > 0 else ""}
+              {f"<span class='badge'>{song_channels}ch</span>" if song_channels > 0 else ""}
+              {f"<span class='badge'>Bitrate: {song_bitrate} kbps</span>" if song_bitrate > 0 else ""}
+              {f"<span class='badge'>Sample Rate: {song_samplerate} Hz</span>" if song_samplerate > 0 else ""}
+              {"".join(f"<span class='badge'>{g}</span>" for g in genre_badges)}
+            </div>
+            <div class="progress">
+              <div class="bar"></div>
+            </div>
+            <p class="small">
+              <span id="elapsed">{elapsed//60}:{elapsed%60:02}</span> / {duration//60}:{duration%60:02}
+            </p>
           </div>
-          <div class="progress">
-            <div class="bar"></div>
+          
+          <!-- Right Column: Artist Bio and Album Description -->
+          <div class="column-right">
+            {f"<div class='album-description'><h4 style='margin-top:0; color: #4caf50;'>📖 Album Description</h4><p>{album_details.get('description', '')}</p></div>" if isinstance(album_details, dict) and album_details.get('description') else f"<!-- No album description: album_details={album_details}, type={type(album_details)} -->"}
+            {f"<div class='album-description'><h4 style='margin-top:0; color: #4caf50;'>👤 Artist Biography</h4>" + (f"<p><strong>Born:</strong> {artist_born}</p>" if artist_born else "") + (f"<p><strong>Genre:</strong> {', '.join(artist_genre)}</p>" if artist_genre else "") + (f"<p><strong>Style:</strong> {', '.join(artist_style)}</p>" if artist_style else "") + f"<p>{artist_details.get('description', '')}</p></div>" if isinstance(artist_details, dict) and artist_details.get('description') else f"<!-- No artist description: artist_details={artist_details}, type={type(artist_details)} -->"}
           </div>
-          <p class="small">
-            <span id="elapsed">{elapsed//60}:{elapsed%60:02}</span> / {duration//60}:{duration%60:02}
-          </p>
         </div>
       </div>
     </body>

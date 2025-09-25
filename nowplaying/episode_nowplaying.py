@@ -33,8 +33,10 @@ def generate_html(item, session_id, downloaded_art, progress_data, details):
     episode = item.get("episode", 0)
     plot = item.get("plot", item.get("description", ""))
     
-    # Create episode subtitle
-    episode_subtitle = f"Season {season} - Episode {episode} - {title}" if show else title
+    # Create episode subtitle components for badges
+    season_badge = f"Season {season}" if season > 0 else ""
+    episode_badge = f"Episode {episode}" if episode > 0 else ""
+    title_badge = title if title else ""
     
     # Extract IMDb ID and construct URL - ensure details is a dict
     if not isinstance(details, dict):
@@ -219,6 +221,21 @@ def generate_html(item, session_id, downloaded_art, progress_data, details):
           border-radius: 20px;
           font-size: 0.8em;
           box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+        }}
+        .episode-badges {{
+          display: flex;
+          gap: 10px;
+          margin: 10px 0;
+          flex-wrap: wrap;
+        }}
+        .episode-badge {{
+          background: #4caf50;
+          color: white;
+          padding: 8px 15px;
+          border-radius: 25px;
+          font-size: 1.0em;
+          font-weight: bold;
+          box-shadow: 0 3px 8px rgba(0,0,0,0.4);
         }}
         .badge-imdb {{
           display: flex;
@@ -482,13 +499,16 @@ def generate_html(item, session_id, downloaded_art, progress_data, details):
             
             <div class="episode-info">
               {f"<div class='show-title'>{show}</div>" if not clearlogo_url and not banner_url else ""}
-              <div class="episode-title">{episode_subtitle}</div>
+              <div class="episode-badges">
+                {f"<span class='badge episode-badge'>{season_badge}</span>" if season_badge else ""}
+                {f"<span class='badge episode-badge'>{episode_badge}</span>" if episode_badge else ""}
+                {f"<span class='badge episode-badge'>{title_badge}</span>" if title_badge else ""}
+              </div>
             </div>
             
-            <p><strong>Director:</strong> {director_names}</p>
-            <p><strong>Cast:</strong> {cast_names}</p>
-            <h3 style="margin-top:20px;">📖 Plot</h3>
-            <p style="max-width:600px;">{plot}</p>
+            {f"<p><strong>Director:</strong> {director_names}</p>" if director_names and director_names != "N/A" else ""}
+            {f"<p><strong>Cast:</strong> {cast_names}</p>" if cast_names and cast_names != "N/A" else ""}
+            {f"<h3 style='margin-top:20px;'>Plot</h3><p style='max-width:600px;'>{plot}</p>" if plot and plot.strip() else ""}
             <div class="badges">
               {rating_html}
               <a href="{imdb_url}" target="_blank" class="badge-imdb">

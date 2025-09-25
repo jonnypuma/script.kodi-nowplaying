@@ -147,11 +147,12 @@ def generate_html(item, session_id, downloaded_art, progress_data, details):
         .poster-container {{
           position: relative;
           overflow: visible;
-          height: 240px;
+          height: 420px;
           width: auto;
+          margin-top: 80px;
         }}
         .poster {{
-          height: 240px;
+          height: 420px;
           border-radius: 8px;
           box-shadow: 0 2px 8px rgba(0,0,0,0.6);
           position: relative;
@@ -159,15 +160,15 @@ def generate_html(item, session_id, downloaded_art, progress_data, details):
         }}
         .discart-wrapper {{
           position: absolute;
-          top: -60px;
+          top: -105px;
           left: 50%;
           transform: translateX(-50%);
           z-index: 1;
-          height: 120px;
-          width: 160px;
+          height: 210px;
+          width: 280px;
         }}
         .discart {{
-          width: 160px;
+          width: 280px;
           animation: spin 4s linear infinite;
           opacity: 1;
           filter: drop-shadow(0 0 4px rgba(0,0,0,0.6));
@@ -246,7 +247,7 @@ def generate_html(item, session_id, downloaded_art, progress_data, details):
         .logo {{
           display: block;
           margin-bottom: 10px;
-          max-height: 60px;
+          max-height: 90px;
         }}
         .clearart {{
           display: block;

@@ -7,10 +7,10 @@ from parser import route_media_display
 
 app = Flask(__name__)
 
-# Kodi connection details - fallback IP and user/pass can be hardcoded if no .env file exists
-KODI_HOST = os.getenv("KODI_HOST", "http://<insert_IP_to_Kodi_Device:Port_KODI_HTTP")
-KODI_USER = os.getenv("KODI_USER", "<your_Kodi_HTTP_username>")
-KODI_PASS = os.getenv("KODI_PASS", "<your_Kodi_HTTP_password")
+# Kodi connection details
+KODI_HOST = os.getenv("KODI_HOST", "http://192.168.0.120:6666")
+KODI_USER = os.getenv("KODI_USER", "Kodi")
+KODI_PASS = os.getenv("KODI_PASS", "Wakseff7")
 AUTH = (KODI_USER, KODI_PASS) if KODI_USER else None
 HEADERS = {"Content-Type": "application/json"}
 
@@ -179,6 +179,7 @@ def prepare_and_download_art(item, session_id):
             image_url = raw_path
         else:
             # Handle local Kodi paths
+            image_url = None
             try:
                 response = kodi_rpc("Files.PrepareDownload", {"path": raw_path})
                 details = response.get("result", {}).get("details", {})
@@ -192,9 +193,71 @@ def prepare_and_download_art(item, session_id):
                     image_url = f"{KODI_HOST}/{path}"
                 else:
                     print(f"[ERROR] No valid download path for {art_type}", flush=True)
-                    continue
             except Exception as e:
                 print(f"[WARNING] Failed to prepare download for {art_type}: {e}", flush=True)
+            
+            # If primary path failed, try fallback paths for artist artwork
+            if not image_url and art_type in ["fanart", "clearlogo", "clearart", "banner"]:
+                # Try to construct fallback paths based on album/artist folder structure
+                # Extract base paths from the current item's file path
+                current_file = item.get("file", "")
+                if current_file.startswith("nfs://"):
+                    # Extract the base path from the current file
+                    # Example: nfs://192.168.0.111/Media/Music/AURORA/A Different Kind of Human - Step 2 (2019)/...
+                    # We want: nfs://192.168.0.111/Media/Music/AURORA/
+                    try:
+                        # Remove the filename and get the directory
+                        file_dir = os.path.dirname(current_file)
+                        # Go up one level to get the artist directory
+                        artist_dir = os.path.dirname(file_dir)
+                        # Go up one more level to get the music directory
+                        music_dir = os.path.dirname(artist_dir)
+                        
+                        print(f"[DEBUG] Constructing fallback paths for {art_type}", flush=True)
+                        print(f"[DEBUG] Artist dir: {artist_dir}", flush=True)
+                        print(f"[DEBUG] Album dir: {file_dir}", flush=True)
+                        
+                        # Try fallback locations - use URL-encoded paths like the working discart
+                        fallback_paths = []
+                        
+                        # Try in album directory first - URL encode the paths
+                        album_path_png = f"{file_dir}/{art_type}.png"
+                        album_path_jpg = f"{file_dir}/{art_type}.jpg"
+                        artist_path_png = f"{artist_dir}/{art_type}.png"
+                        artist_path_jpg = f"{artist_dir}/{art_type}.jpg"
+                        
+                        # URL encode the paths like the working discart example
+                        fallback_paths.append(f"image://{urllib.parse.quote(album_path_png, safe='')}/")
+                        fallback_paths.append(f"image://{urllib.parse.quote(album_path_jpg, safe='')}/")
+                        fallback_paths.append(f"image://{urllib.parse.quote(artist_path_png, safe='')}/")
+                        fallback_paths.append(f"image://{urllib.parse.quote(artist_path_jpg, safe='')}/")
+                        
+                        # Try each fallback path
+                        for fallback_path in fallback_paths:
+                            try:
+                                print(f"[DEBUG] Trying fallback path: {fallback_path}", flush=True)
+                                response = kodi_rpc("Files.PrepareDownload", {"path": fallback_path})
+                                details = response.get("result", {}).get("details", {})
+                                token = details.get("token")
+                                path = details.get("path")
+                                
+                                if token:
+                                    basename = os.path.basename(fallback_path)
+                                    image_url = f"{KODI_HOST}/vfs/{token}/{urllib.parse.quote(basename)}"
+                                    print(f"[DEBUG] Found fallback path for {art_type}: {image_url}", flush=True)
+                                    break
+                                elif path:
+                                    image_url = f"{KODI_HOST}/{path}"
+                                    print(f"[DEBUG] Found fallback path for {art_type}: {image_url}", flush=True)
+                                    break
+                            except Exception as e:
+                                print(f"[DEBUG] Fallback path failed for {art_type}: {e}", flush=True)
+                                continue
+                    except Exception as e:
+                        print(f"[DEBUG] Failed to construct fallback paths for {art_type}: {e}", flush=True)
+            
+            if not image_url:
+                print(f"[ERROR] No valid download path found for {art_type}", flush=True)
                 continue
 
         filename = f"{session_id}_{art_type}.jpg"
@@ -335,8 +398,8 @@ def now_playing():
                 "playerid": player_id,
                 "properties": [
                     "title", "album", "artist", "season", "episode", "showtitle",
-                    "tvshowid", "duration", "file", "director", "art", "plot", 
-                    "cast", "resume", "genre", "rating", "streamdetails", "year"
+                        "tvshowid", "duration", "file", "director", "art", "plot", 
+                        "cast", "resume", "genre", "rating", "streamdetails", "year"
                 ]
             })
             result = item_response.get("result", {})
@@ -362,8 +425,8 @@ def now_playing():
                 print(f"[DEBUG] Getting enhanced details for episode", flush=True)
                 episode_response = kodi_rpc("VideoLibrary.GetEpisodeDetails", {
                     "episodeid": item.get("id"),
-                    "properties": ["streamdetails", "genre", "director", "cast", "uniqueid", "rating"]
-                })
+                "properties": ["streamdetails", "genre", "director", "cast", "uniqueid", "rating"]
+            })
                 if episode_response and episode_response.get("result"):
                     episode_details = episode_response["result"].get("episodedetails", {})
                     # Merge enhanced details with basic item data
@@ -388,8 +451,8 @@ def now_playing():
                 print(f"[DEBUG] Getting enhanced details for movie", flush=True)
                 movie_response = kodi_rpc("VideoLibrary.GetMovieDetails", {
                     "movieid": item.get("id"),
-                    "properties": ["streamdetails", "genre", "director", "cast", "uniqueid", "rating"]
-                })
+                "properties": ["streamdetails", "genre", "director", "cast", "uniqueid", "rating"]
+            })
                 if movie_response and movie_response.get("result"):
                     movie_details = movie_response["result"].get("moviedetails", {})
                     # Merge enhanced details with basic item data
@@ -455,11 +518,9 @@ def now_playing():
                     except Exception as e:
                         print(f"[WARNING] Failed to get artist details: {e}", flush=True)
                 
-                # Ensure basic item data is preserved
+                # Ensure basic item data is preserved (but don't overwrite detailed album/artist objects)
                 details.update({
                     "title": item.get("title", ""),
-                    "album": item.get("album", ""),
-                    "artist": item.get("artist", []),
                     "year": item.get("year", "")
                 })
                 
