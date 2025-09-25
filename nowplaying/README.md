@@ -30,12 +30,15 @@ docker compose build --no-cache kodi-nowplaying
 
 docker compose up -d
 
+___
+
 Start playing media on your Kodi device
 
 Test locally by visiting http://localhost:5001/nowplaying <- or replace localhost with the IP of the container host
 
 
 Mount it as a custom Homarr iframe tile pointing to http://localhost:5001/nowplaying 
+
 
 
 
