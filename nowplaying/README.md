@@ -1,6 +1,7 @@
 Make sure Kodi has web control enabled
 
 ___
+.env file:
 
 Kodi Nowplaying Credentials - in the .env file replace with your credentials and Kodi IP and port no
 
@@ -10,9 +11,9 @@ KODI_USERNAME=YoutUsername
 
 KODI_PASSWORD=YourPassword
 
-Hardcoded Fallback
-
 ___
+
+Hardcoded Fallback:
 
 OPTIONAL: Create fallback and edit the kodi-nowplaying.py file and enter Kodi IP and user/pass there:
 
@@ -38,6 +39,7 @@ Test locally by visiting http://localhost:5001/nowplaying <- or replace localhos
 
 
 Mount it as a custom Homarr iframe tile pointing to http://localhost:5001/nowplaying 
+
 
 
 
