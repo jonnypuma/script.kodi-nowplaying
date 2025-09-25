@@ -8,9 +8,8 @@ KODI_USERNAME=YoutUsername
 
 KODI_PASSWORD=YourPassword
 
-
+Hardcoded Fallback
 OPTIONAL: Create fallback and edit the kodi-nowplaying.py file and enter Kodi IP and user/pass there:
-# Kodi connection details
 KODI_HOST = os.getenv("KODI_HOST", "http://your_Kodi_IP:port")
 
 KODI_USER = os.getenv("KODI_USER", "your_Kodi_username")
@@ -27,6 +26,7 @@ Test locally by visiting http://localhost:5001/nowplaying <- or replace localhos
 
 
 Mount it as a custom Homarr iframe tile pointing to http://localhost:5001/nowplaying 
+
 
 
 
