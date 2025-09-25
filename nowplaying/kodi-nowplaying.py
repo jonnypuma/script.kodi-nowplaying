@@ -8,9 +8,9 @@ from parser import route_media_display
 app = Flask(__name__)
 
 # Kodi connection details
-KODI_HOST = os.getenv("KODI_HOST", "http://192.168.0.120:6666")
-KODI_USER = os.getenv("KODI_USER", "Kodi")
-KODI_PASS = os.getenv("KODI_PASS", "Wakseff7")
+KODI_HOST = os.getenv("KODI_HOST", "http://KodiIPport")
+KODI_USER = os.getenv("KODI_USER", "yoor_Kodi_username")
+KODI_PASS = os.getenv("KODI_PASS", "your_Kodi_password")
 AUTH = (KODI_USER, KODI_PASS) if KODI_USER else None
 HEADERS = {"Content-Type": "application/json"}
 
@@ -680,4 +680,5 @@ def generate_fallback_html(item, progress_data):
     """
 
 if __name__ == "__main__":
+
     app.run(host="0.0.0.0", port=5001)
