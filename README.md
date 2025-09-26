@@ -26,6 +26,8 @@ Test locally by visiting http://localhost:5001/nowplaying <- or replace localhos
 Mount it as a custom Homarr iframe tile pointing to http://localhost:5001/nowplaying 
 
 
+<img width="1277" height="707" alt="image" src="https://github.com/user-attachments/assets/5c01b5b1-9077-42f8-9017-07d235210719" />
+
 
 
 
