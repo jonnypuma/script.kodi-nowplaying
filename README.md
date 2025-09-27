@@ -19,7 +19,10 @@ KODI_PASS = os.getenv("KODI_PASS", "insert_pass")
 _________________________
 
 Build and start container:
-```docker compose up -d```
+```
+docker compose build --no-cache kodi-nowplaying
+docker compose up -d
+```
 
 Start playing media on your Kodi device
 
@@ -35,6 +38,7 @@ Movie example:
 
 Music example:
 <img width="1270" height="707" alt="image" src="https://github.com/user-attachments/assets/70937359-f7e2-4c82-9ea0-91e53444213a" />
+
 
 
 
