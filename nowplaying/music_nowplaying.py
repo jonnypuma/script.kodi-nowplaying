@@ -103,6 +103,11 @@ def generate_html(item, session_id, downloaded_art, progress_data, details):
     song_release_date = details.get("releasedate", "")
     song_original_date = details.get("originaldate", "")
     
+    # Create music badge components
+    disc_badge = f"Disc {song_disc}" if song_disc > 0 else ""
+    track_badge = f"Track {song_track:02d}" if song_track > 0 else ""
+    title_badge = title if title else ""
+    
     
     # Get additional artist info - ensure artist_details is a dict
     if not isinstance(artist_details, dict):
@@ -393,6 +398,21 @@ def generate_html(item, session_id, downloaded_art, progress_data, details):
           letter-spacing: 0.5px;
           margin-right: 8px;
         }}
+        .music-badges {{
+          display: flex;
+          gap: 10px;
+          margin: 10px 0;
+          flex-wrap: wrap;
+        }}
+        .music-badge {{
+          background: #4caf50;
+          color: white;
+          padding: 8px 15px;
+          border-radius: 25px;
+          font-size: 1.0em;
+          font-weight: bold;
+          box-shadow: 0 3px 8px rgba(0,0,0,0.4);
+        }}
         .album-title {{
           font-size: 1.2em;
           font-weight: bold;
@@ -620,8 +640,10 @@ def generate_html(item, session_id, downloaded_art, progress_data, details):
             {f"<img class='logo' src='{clearlogo_url}' />" if clearlogo_url else (f"<img class='banner' src='{banner_url}' />" if banner_url else f"<h2 style='margin-bottom: 4px;'>🎵 {artist_names}</h2>")}
             
             <div class="music-info">
-              <div class="track-title">
-                {f"<span class='track-number'>Track {song_track:02d}:</span>" if song_track > 0 else ""}{title}
+              <div class="music-badges">
+                {f"<span class='music-badge'>{disc_badge}</span>" if disc_badge else ""}
+                {f"<span class='music-badge'>{track_badge}</span>" if track_badge else ""}
+                {f"<span class='music-badge'>{title_badge}</span>" if title_badge else ""}
               </div>
               <div class="album-title">by {artist_names}</div>
               {f"<div class='album-title'>from {album}" + (f" ({album_year})" if album_year else "") + "</div>" if album else ""}
@@ -647,8 +669,8 @@ def generate_html(item, session_id, downloaded_art, progress_data, details):
           
           <!-- Right Column: Artist Bio and Album Description -->
           <div class="column-right">
-            {f"<div class='album-description'><h4 style='margin-top:0; color: #4caf50;'>📖 Album Description</h4><p>{album_details.get('description', '')}</p></div>" if isinstance(album_details, dict) and album_details.get('description') else f"<!-- No album description: album_details={album_details}, type={type(album_details)} -->"}
-            {f"<div class='album-description'><h4 style='margin-top:0; color: #4caf50;'>👤 Artist Biography</h4>" + (f"<p><strong>Born:</strong> {artist_born}</p>" if artist_born else "") + (f"<p><strong>Genre:</strong> {', '.join(artist_genre)}</p>" if artist_genre else "") + (f"<p><strong>Style:</strong> {', '.join(artist_style)}</p>" if artist_style else "") + f"<p>{artist_details.get('description', '')}</p></div>" if isinstance(artist_details, dict) and artist_details.get('description') else f"<!-- No artist description: artist_details={artist_details}, type={type(artist_details)} -->"}
+            {f"<div class='album-description'><div class='music-badges'><span class='music-badge'>Album Description</span></div><p>{album_details.get('description', '')}</p></div>" if isinstance(album_details, dict) and album_details.get('description') else f"<!-- No album description: album_details={album_details}, type={type(album_details)} -->"}
+            {f"<div class='album-description'><div class='music-badges'><span class='music-badge'>Artist Biography</span></div>" + (f"<p><strong>Born:</strong> {artist_born}</p>" if artist_born else "") + (f"<p><strong>Genre:</strong> {', '.join(artist_genre)}</p>" if artist_genre else "") + (f"<p><strong>Style:</strong> {', '.join(artist_style)}</p>" if artist_style else "") + f"<p>{artist_details.get('description', '')}</p></div>" if isinstance(artist_details, dict) and artist_details.get('description') else f"<!-- No artist description: artist_details={artist_details}, type={type(artist_details)} -->"}
           </div>
         </div>
       </div>
