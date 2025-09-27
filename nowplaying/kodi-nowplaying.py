@@ -8,9 +8,9 @@ from parser import route_media_display
 app = Flask(__name__)
 
 # Kodi connection details
-KODI_HOST = os.getenv("KODI_HOST", "http://KodiIPport")
-KODI_USER = os.getenv("KODI_USER", "yoor_Kodi_username")
-KODI_PASS = os.getenv("KODI_PASS", "your_Kodi_password")
+KODI_HOST = os.getenv("KODI_HOST", "http://192.168.0.120:6666")
+KODI_USER = os.getenv("KODI_USER", "Kodi")
+KODI_PASS = os.getenv("KODI_PASS", "Wakseff7")
 AUTH = (KODI_USER, KODI_PASS) if KODI_USER else None
 HEADERS = {"Content-Type": "application/json"}
 
@@ -198,44 +198,64 @@ def prepare_and_download_art(item, session_id):
             
             # If primary path failed, try fallback paths for artist artwork
             if not image_url and art_type in ["fanart", "clearlogo", "clearart", "banner"]:
+                print(f"[DEBUG] Primary path failed, trying fallback paths for {art_type}", flush=True)
                 # Try to construct fallback paths based on album/artist folder structure
-                # Extract base paths from the current item's file path
                 current_file = item.get("file", "")
                 if current_file.startswith("nfs://"):
-                    # Extract the base path from the current file
-                    # Example: nfs://192.168.0.111/Media/Music/AURORA/A Different Kind of Human - Step 2 (2019)/...
-                    # We want: nfs://192.168.0.111/Media/Music/AURORA/
                     try:
-                        # Remove the filename and get the directory
-                        file_dir = os.path.dirname(current_file)
-                        # Go up one level to get the artist directory
-                        artist_dir = os.path.dirname(file_dir)
-                        # Go up one more level to get the music directory
-                        music_dir = os.path.dirname(artist_dir)
-                        
-                        print(f"[DEBUG] Constructing fallback paths for {art_type}", flush=True)
-                        print(f"[DEBUG] Artist dir: {artist_dir}", flush=True)
-                        print(f"[DEBUG] Album dir: {file_dir}", flush=True)
-                        
-                        # Try fallback locations - use URL-encoded paths like the working discart
+                        # Traverse upwards to find directories that contain fanart files
+                        # This is the most reliable way since fanart is typically only in artist directories
+                        current_path = current_file
                         fallback_paths = []
                         
-                        # Try in album directory first - URL encode the paths
-                        album_path_png = f"{file_dir}/{art_type}.png"
-                        album_path_jpg = f"{file_dir}/{art_type}.jpg"
-                        artist_path_png = f"{artist_dir}/{art_type}.png"
-                        artist_path_jpg = f"{artist_dir}/{art_type}.jpg"
+                        print(f"[DEBUG] Traversing upwards from: {current_path}")
                         
-                        # URL encode the paths like the working discart example
-                        fallback_paths.append(f"image://{urllib.parse.quote(album_path_png, safe='')}/")
-                        fallback_paths.append(f"image://{urllib.parse.quote(album_path_jpg, safe='')}/")
-                        fallback_paths.append(f"image://{urllib.parse.quote(artist_path_png, safe='')}/")
-                        fallback_paths.append(f"image://{urllib.parse.quote(artist_path_jpg, safe='')}/")
+                        # Traverse upwards to find directories with fanart files
+                        for level in range(8):  # Limit to 8 levels up to avoid infinite loops
+                            parent_path = os.path.dirname(current_path)
+                            if parent_path == current_path:  # Reached root
+                                break
+                            
+                            dir_name = os.path.basename(parent_path)
+                            
+                            # Skip system directories
+                            if any(x in dir_name.upper() for x in ['MEDIA', 'MUSIC', 'VIDEO', 'TV', 'MOVIES']):
+                                current_path = parent_path
+                                continue
+                            
+                            # Try to find fanart files in this directory
+                            # This works for both artist directories (which have fanart) and album directories (which might have other artwork)
+                            fanart_png = f"{parent_path}/fanart.png"
+                            fanart_jpg = f"{parent_path}/fanart.jpg"
+                            clearlogo_png = f"{parent_path}/clearlogo.png"
+                            clearlogo_jpg = f"{parent_path}/clearlogo.jpg"
+                            clearart_png = f"{parent_path}/clearart.png"
+                            clearart_jpg = f"{parent_path}/clearart.jpg"
+                            banner_png = f"{parent_path}/banner.png"
+                            banner_jpg = f"{parent_path}/banner.jpg"
+                            
+                            # Add paths for the specific art type we're looking for
+                            if art_type == "fanart":
+                                fallback_paths.append(f"image://{urllib.parse.quote(fanart_png, safe='')}/")
+                                fallback_paths.append(f"image://{urllib.parse.quote(fanart_jpg, safe='')}/")
+                            elif art_type == "clearlogo":
+                                fallback_paths.append(f"image://{urllib.parse.quote(clearlogo_png, safe='')}/")
+                                fallback_paths.append(f"image://{urllib.parse.quote(clearlogo_jpg, safe='')}/")
+                            elif art_type == "clearart":
+                                fallback_paths.append(f"image://{urllib.parse.quote(clearart_png, safe='')}/")
+                                fallback_paths.append(f"image://{urllib.parse.quote(clearart_jpg, safe='')}/")
+                            elif art_type == "banner":
+                                fallback_paths.append(f"image://{urllib.parse.quote(banner_png, safe='')}/")
+                                fallback_paths.append(f"image://{urllib.parse.quote(banner_jpg, safe='')}/")
+                            
+                            print(f"[DEBUG] Level {level}: Checking {parent_path} for {art_type}")
+                            
+                            current_path = parent_path
                         
                         # Try each fallback path
                         for fallback_path in fallback_paths:
                             try:
-                                print(f"[DEBUG] Trying fallback path: {fallback_path}", flush=True)
+                                print(f"[DEBUG] Trying fallback path: {fallback_path}")
                                 response = kodi_rpc("Files.PrepareDownload", {"path": fallback_path})
                                 details = response.get("result", {}).get("details", {})
                                 token = details.get("token")
@@ -244,17 +264,17 @@ def prepare_and_download_art(item, session_id):
                                 if token:
                                     basename = os.path.basename(fallback_path)
                                     image_url = f"{KODI_HOST}/vfs/{token}/{urllib.parse.quote(basename)}"
-                                    print(f"[DEBUG] Found fallback path for {art_type}: {image_url}", flush=True)
+                                    print(f"[DEBUG] Found fallback path for {art_type}: {image_url}")
                                     break
                                 elif path:
                                     image_url = f"{KODI_HOST}/{path}"
-                                    print(f"[DEBUG] Found fallback path for {art_type}: {image_url}", flush=True)
+                                    print(f"[DEBUG] Found fallback path for {art_type}: {image_url}")
                                     break
                             except Exception as e:
-                                print(f"[DEBUG] Fallback path failed for {art_type}: {e}", flush=True)
+                                print(f"[DEBUG] Fallback path failed for {art_type}: {e}")
                                 continue
                     except Exception as e:
-                        print(f"[DEBUG] Failed to construct fallback paths for {art_type}: {e}", flush=True)
+                        print(f"[DEBUG] Failed to construct fallback paths for {art_type}: {e}")
             
             if not image_url:
                 print(f"[ERROR] No valid download path found for {art_type}", flush=True)
@@ -278,6 +298,94 @@ def prepare_and_download_art(item, session_id):
             print(f"[INFO] Downloaded {art_type} to {local_path}", flush=True)
         except Exception as e:
             print(f"[ERROR] Failed to download {art_type}: {e}", flush=True)
+            
+            # If download failed with 401, try fallback paths for artist artwork
+            if "401" in str(e) and art_type in ["fanart", "clearlogo", "clearart", "banner"]:
+                print(f"[DEBUG] Download failed with 401, trying fallback paths for {art_type}", flush=True)
+                # Try to construct fallback paths based on album/artist folder structure
+                current_file = item.get("file", "")
+                if current_file.startswith("nfs://"):
+                    try:
+                        # Traverse upwards to find directories that contain fanart files
+                        # This is the most reliable way since fanart is typically only in artist directories
+                        current_path = current_file
+                        fallback_paths = []
+                        
+                        print(f"[DEBUG] Traversing upwards from: {current_path}")
+                        
+                        # Traverse upwards to find directories with fanart files
+                        for level in range(8):  # Limit to 8 levels up to avoid infinite loops
+                            parent_path = os.path.dirname(current_path)
+                            if parent_path == current_path:  # Reached root
+                                break
+                            
+                            dir_name = os.path.basename(parent_path)
+                            
+                            # Skip system directories
+                            if any(x in dir_name.upper() for x in ['MEDIA', 'MUSIC', 'VIDEO', 'TV', 'MOVIES']):
+                                current_path = parent_path
+                                continue
+                            
+                            # Try to find fanart files in this directory
+                            # This works for both artist directories (which have fanart) and album directories (which might have other artwork)
+                            fanart_png = f"{parent_path}/fanart.png"
+                            fanart_jpg = f"{parent_path}/fanart.jpg"
+                            clearlogo_png = f"{parent_path}/clearlogo.png"
+                            clearlogo_jpg = f"{parent_path}/clearlogo.jpg"
+                            clearart_png = f"{parent_path}/clearart.png"
+                            clearart_jpg = f"{parent_path}/clearart.jpg"
+                            banner_png = f"{parent_path}/banner.png"
+                            banner_jpg = f"{parent_path}/banner.jpg"
+                            
+                            # Add paths for the specific art type we're looking for
+                            if art_type == "fanart":
+                                fallback_paths.append(f"image://{urllib.parse.quote(fanart_png, safe='')}/")
+                                fallback_paths.append(f"image://{urllib.parse.quote(fanart_jpg, safe='')}/")
+                            elif art_type == "clearlogo":
+                                fallback_paths.append(f"image://{urllib.parse.quote(clearlogo_png, safe='')}/")
+                                fallback_paths.append(f"image://{urllib.parse.quote(clearlogo_jpg, safe='')}/")
+                            elif art_type == "clearart":
+                                fallback_paths.append(f"image://{urllib.parse.quote(clearart_png, safe='')}/")
+                                fallback_paths.append(f"image://{urllib.parse.quote(clearart_jpg, safe='')}/")
+                            elif art_type == "banner":
+                                fallback_paths.append(f"image://{urllib.parse.quote(banner_png, safe='')}/")
+                                fallback_paths.append(f"image://{urllib.parse.quote(banner_jpg, safe='')}/")
+                            
+                            print(f"[DEBUG] Level {level}: Checking {parent_path} for {art_type}")
+                            
+                            current_path = parent_path
+                        
+                        # Try each fallback path
+                        for fallback_path in fallback_paths:
+                            try:
+                                print(f"[DEBUG] Trying fallback path: {fallback_path}")
+                                response = kodi_rpc("Files.PrepareDownload", {"path": fallback_path})
+                                details = response.get("result", {}).get("details", {})
+                                token = details.get("token")
+                                path = details.get("path")
+                                
+                                if token:
+                                    basename = os.path.basename(fallback_path)
+                                    fallback_image_url = f"{KODI_HOST}/vfs/{token}/{urllib.parse.quote(basename)}"
+                                elif path:
+                                    fallback_image_url = f"{KODI_HOST}/{path}"
+                                else:
+                                    continue
+                                
+                                # Try to download the fallback image
+                                print(f"[DEBUG] Trying to download fallback: {fallback_image_url}")
+                                r = requests.get(fallback_image_url, auth=AUTH, timeout=5)
+                                r.raise_for_status()
+                                with open(local_path, "wb") as f:
+                                    f.write(r.content)
+                                downloaded[art_type] = filename
+                                print(f"[INFO] Downloaded {art_type} from fallback path to {local_path}")
+                                break  # Success, stop trying other fallback paths
+                            except Exception as fallback_e:
+                                print(f"[DEBUG] Fallback path failed for {art_type}: {fallback_e}")
+                                continue
+                    except Exception as fallback_construct_e:
+                        print(f"[DEBUG] Failed to construct fallback paths for {art_type}: {fallback_construct_e}")
 
     return downloaded
 
@@ -680,5 +788,4 @@ def generate_fallback_html(item, progress_data):
     """
 
 if __name__ == "__main__":
-
     app.run(host="0.0.0.0", port=5001)
